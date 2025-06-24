@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Magnet-Link Generator</title>
+  <style>
+    :root {
+      --primary: #3c3fff;
+      --accent: #872cff;
+      --bg: #0a0a0a;
+      --card-bg: #1a1a1a;
+      --text: #f3f4f6;
+      --text-muted: #9ca3af;
+      --error: #ef4444;
+      --success: #10b981;
+      --border: #374151;
+    }
+    
+    * { 
+      box-sizing: border-box; 
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, var(--bg) 0%, #1a1a2e 100%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    
+    .container {
+      background: var(--card-bg);
+      padding: 2.5rem;
+      border-radius: 1.5rem;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      border: 1px solid var(--border);
+      max-width: 500px;
+      width: 100%;
+      backdrop-filter: blur(10px);
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      font-size: 2rem;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+    
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    
+    input[type="text"] {
+      width: 100%;
+      padding: 1rem;
+      background: var(--bg);
+      border: 2px solid var(--border);
+      border-radius: 0.75rem;
+      color: var(--text);
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+    
+    input[type="text"]:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(60, 63, 255, 0.1);
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+    
+    button {
+      flex: 1;
+      background: linear-gradient(135deg, var(--primary), var(--accent));
+      color: white;
+      border: none;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: 0.75rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(60, 63, 255, 0.4);
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    .secondary-btn {
+      background: var(--bg);
+      border: 2px solid var(--border);
+    }
+    
+    .secondary-btn:hover {
+      background: var(--border);
+      box-shadow: 0 5px 15px -3px rgba(0, 0, 0, 0.3);
+    }
+    
+    .message {
+      margin-top: 1rem;
+      padding: 1rem;
+      border-radius: 0.75rem;
+      text-align: center;
+      font-weight: 500;
+    }
+    
+    .error {
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+    
+    .success {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+    
+    .result {
+      margin-top: 1.5rem;
+      padding: 1.5rem;
+      background: var(--bg);
+      border-radius: 0.75rem;
+      border: 1px solid var(--border);
+    }
+    
+    .result-url {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    
+    .result-url input {
+      flex: 1;
+      padding: 0.75rem;
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 0.5rem;
+      color: var(--text);
+      font-family: monospace;
+      font-size: 0.9rem;
+    }
+    
+    .copy-btn {
+      background: var(--success);
+      padding: 0.75rem 1rem;
+      border-radius: 0.5rem;
+      font-size: 0.9rem;
+      min-width: 80px;
+    }
+    
+    .copy-btn:hover {
+      background: #059669;
+    }
+    
+    .links-list {
+      margin-top: 2rem;
+    }
+    
+    .links-list h3 {
+      margin-bottom: 1rem;
+      color: var(--text-muted);
+    }
+    
+    .link-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background: var(--bg);
+      border-radius: 0.5rem;
+      margin-bottom: 0.5rem;
+      border: 1px solid var(--border);
+    }
+    
+    .link-name {
+      font-weight: 600;
+      color: var(--primary);
+    }
+    
+    .link-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .small-btn {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.8rem;
+      border-radius: 0.4rem;
+    }
+    
+    .delete-btn {
+      background: var(--error);
+    }
+    
+    .delete-btn:hover {
+      background: #dc2626;
+    }
+    
+    @media (max-width: 640px) {
+      .container {
+        padding: 1.5rem;
+        margin: 0.5rem;
+      }
+      
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .result-url {
+        flex-direction: column;
+      }
+      
+      .result-url input {
+        margin-bottom: 0.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🧲 Magnet-Link Generator</h1>
+    
+    <div id="redirecting" style="display: none; text-align: center;">
+      <h2>🔄 Weiterleitung...</h2>
+      <p>Sie werden automatisch weitergeleitet...</p>
+    </div>
+    
+    <div id="mainContent">
+      <form id="form">
+        <div class="form-group">
+          <label for="nameInput">Link-Name (optional):</label>
+          <input id="nameInput" type="text" placeholder="z.B. mein-film oder projekt123" />
+        </div>
+        
+        <div class="form-group">
+          <label for="magnetInput">Magnet-Link:</label>
+          <input id="magnetInput" type="text" placeholder="magnet:?xt=urn:btih:..." required />
+        </div>
+        
+        <div class="button-group">
+          <button type="submit">🔗 Link erstellen</button>
+          <button type="button" class="secondary-btn" id="clearBtn">🗑️ Alle löschen</button>
+        </div>
+      </form>
+      
+      <div id="message"></div>
+      <div id="result"></div>
+      
+      <div id="linksList" class="links-list" style="display: none;">
+        <h3>📝 Gespeicherte Links:</h3>
+        <div id="linksContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Datenstruktur für gespeicherte Links
+    let savedLinks = {};
+    
+    // Initialisierung
+    document.addEventListener('DOMContentLoaded', function() {
+      loadSavedLinks();
+      handleRedirect();
+      updateLinksList();
+    });
+    
+    // Lade gespeicherte Links aus URL Hash
+    function loadSavedLinks() {
+      try {
+        const hash = window.location.hash.substring(1);
+        if (hash) {
+          const decoded = atob(hash);
+          savedLinks = JSON.parse(decoded);
+        }
+      } catch (e) {
+        savedLinks = {};
+      }
+    }
+    
+    // Speichere Links in URL Hash
+    function saveLinkData() {
+      const encoded = btoa(JSON.stringify(savedLinks));
+      window.location.hash = encoded;
+    }
+    
+    // Handle Redirect Logic
+    function handleRedirect() {
+      const path = window.location.pathname;
+      const segments = path.split('/').filter(s => s);
+      
+      if (segments.length > 0) {
+        const linkName = segments[segments.length - 1];
+        
+        // Suche nach dem Link in den gespeicherten Daten
+        if (savedLinks[linkName]) {
+          document.getElementById('mainContent').style.display = 'none';
+          document.getElementById('redirecting').style.display = 'block';
+          
+          setTimeout(() => {
+            window.location.href = savedLinks[linkName];
+          }, 1000);
+          return;
+        }
+        
+        // Fallback: Prüfe URL Parameter
+        const params = new URLSearchParams(window.location.search);
+        if (params.has('m')) {
+          try {
+            const mag = atob(params.get('m'));
+            if (mag.startsWith('magnet:')) {
+              document.getElementById('mainContent').style.display = 'none';
+              document.getElementById('redirecting').style.display = 'block';
+              
+              setTimeout(() => {
+                window.location.href = mag;
+              }, 1000);
+              return;
+            }
+          } catch(e) {
+            showMessage('Ungültiger Link.', 'error');
+          }
+        }
+        
+        showMessage('Link nicht gefunden.', 'error');
+      }
+    }
+    
+    // Generiere eindeutigen Namen falls keiner angegeben
+    function generateUniqueName() {
+      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+      let result = '';
+      for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      return result;
+    }
+    
+    // Zeige Nachricht
+    function showMessage(text, type = 'success') {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = text;
+      messageDiv.className = `message ${type}`;
+      messageDiv.style.display = 'block';
+      
+      setTimeout(() => {
+        messageDiv.style.display = 'none';
+      }, 5000);
+    }
+    
+    // Aktualisiere die Liste der gespeicherten Links
+    function updateLinksList() {
+      const container = document.getElementById('linksContainer');
+      const listDiv = document.getElementById('linksList');
+      
+      if (Object.keys(savedLinks).length === 0) {
+        listDiv.style.display = 'none';
+        return;
+      }
+      
+      listDiv.style.display = 'block';
+      container.innerHTML = '';
+      
+      Object.entries(savedLinks).forEach(([name, magnet]) => {
+        const item = document.createElement('div');
+        item.className = 'link-item';
+        
+        const baseUrl = `${window.location.origin}${window.location.pathname}`;
+        const shortUrl = baseUrl.endsWith('/') ? `${baseUrl}${name}` : `${baseUrl}/${name}`;
+        
+        item.innerHTML = `
+          <div>
+            <div class="link-name">${name}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.2rem;">
+              ${shortUrl}
+            </div>
+          </div>
+          <div class="link-actions">
+            <button class="copy-btn small-btn" onclick="copyToClipboard('${shortUrl}')">Kopieren</button>
+            <button class="delete-btn small-btn" onclick="deleteLink('${name}')">Löschen</button>
+          </div>
+        `;
+        
+        container.appendChild(item);
+      });
+    }
+    
+    // Kopiere URL in Zwischenablage
+    function copyToClipboard(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showMessage('Link kopiert!', 'success');
+      });
+    }
+    
+    // Lösche einzelnen Link
+    function deleteLink(name) {
+      if (confirm(`Link "${name}" wirklich löschen?`)) {
+        delete savedLinks[name];
+        saveLinkData();
+        updateLinksList();
+        showMessage('Link gelöscht.', 'success');
+      }
+    }
+    
+    // Event Listeners
+    document.getElementById('form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const nameInput = document.getElementById('nameInput');
+      const magnetInput = document.getElementById('magnetInput');
+      const resultDiv = document.getElementById('result');
+      
+      const magnet = magnetInput.value.trim();
+      let linkName = nameInput.value.trim();
+      
+      // Validierung
+      if (!magnet.startsWith('magnet:?xt=')) {
+        showMessage('Bitte einen gültigen Magnet-Link eingeben.', 'error');
+        return;
+      }
+      
+      // Generiere Namen falls keiner angegeben
+      if (!linkName) {
+        linkName = generateUniqueName();
+      }
+      
+      // Prüfe ob Name bereits existiert
+      if (savedLinks[linkName]) {
+        showMessage('Dieser Name ist bereits vergeben. Bitte wählen Sie einen anderen.', 'error');
+        return;
+      }
+      
+      // Speichere Link
+      savedLinks[linkName] = magnet;
+      saveLinkData();
+      
+      // Erstelle Short URL
+      const baseUrl = `${window.location.origin}${window.location.pathname}`;
+      const shortUrl = baseUrl.endsWith('/') ? `${baseUrl}${linkName}` : `${baseUrl}/${linkName}`;
+      
+      // Zeige Ergebnis
+      resultDiv.innerHTML = `
+        <div class="result-url">
+          <input type="text" value="${shortUrl}" readonly />
+          <button class="copy-btn" onclick="copyToClipboard('${shortUrl}')">Kopieren</button>
+        </div>
+      `;
+      resultDiv.style.display = 'block';
+      
+      // Update Liste
+      updateLinksList();
+      
+      // Leere Formular
+      nameInput.value = '';
+      magnetInput.value = '';
+      
+      showMessage('Link erfolgreich erstellt!', 'success');
+    });
+    
+    // Clear All Button
+    document.getElementById('clearBtn').addEventListener('click', function() {
+      if (confirm('Wirklich alle gespeicherten Links löschen?')) {
+        savedLinks = {};
+        saveLinkData();
+        updateLinksList();
+        document.getElementById('result').style.display = 'none';
+        showMessage('Alle Links gelöscht.', 'success');
+      }
+    });
+  </script>
+</body>
+</html>
