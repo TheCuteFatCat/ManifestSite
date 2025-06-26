@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MagnetShort - Magnet Link Shortener</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f0f23 0%, #1a1a2e 50%, #16213e 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .background-effects {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-orb {
+            position: absolute;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            opacity: 0.1;
+            animation: float 8s ease-in-out infinite;
+        }
+
+        .orb1 {
+            width: 200px;
+            height: 200px;
+            top: 10%;
+            left: 80%;
+            animation-delay: 0s;
+        }
+
+        .orb2 {
+            width: 150px;
+            height: 150px;
+            top: 60%;
+            left: 10%;
+            animation-delay: 2s;
+        }
+
+        .orb3 {
+            width: 100px;
+            height: 100px;
+            top: 30%;
+            left: 20%;
+            animation-delay: 4s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .logo {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(45deg, #667eea, #764ba2, #f093fb);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .description {
+            font-size: 0.95rem;
+            opacity: 0.6;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        .main-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 2.5rem;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .main-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .input-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            opacity: 0.9;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .input-field:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 20px rgba(102, 126, 234, 0.3);
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem 2rem;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 15px;
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .result-section {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 15px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            display: none;
+        }
+
+        .result-section.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-title {
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .result-link {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 1rem;
+            border-radius: 10px;
+            font-family: monospace;
+            word-break: break-all;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .copy-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(102, 126, 234, 0.2);
+            border: 1px solid #667eea;
+            border-radius: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+        }
+
+        .copy-btn:hover {
+            background: rgba(102, 126, 234, 0.4);
+        }
+
+        .error-message {
+            background: rgba(255, 107, 107, 0.1);
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            color: #ff6b6b;
+            padding: 1rem;
+            border-radius: 10px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .redirect-section {
+            text-align: center;
+            margin-top: 2rem;
+        }
+
+        .redirect-message {
+            font-size: 1.2rem;
+            margin-bottom: 1rem;
+            color: #667eea;
+        }
+
+        .redirect-link {
+            color: #f093fb;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .redirect-link:hover {
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .logo {
+                font-size: 2.5rem;
+            }
+
+            .main-card {
+                padding: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="background-effects">
+        <div class="floating-orb orb1"></div>
+        <div class="floating-orb orb2"></div>
+        <div class="floating-orb orb3"></div>
+    </div>
+
+    <div class="container">
+        <div class="header">
+            <div class="logo">MagnetShort</div>
+            <div class="subtitle">Magnet Link Shortener</div>
+            <div class="description">Verwandeln Sie lange Magnet-Links in kurze, teilbare URLs</div>
+        </div>
+
+        <div class="main-card">
+            <div id="shortener-section">
+                <div class="input-group">
+                    <label class="input-label" for="magnetInput">Magnet Link eingeben:</label>
+                    <input 
+                        type="text" 
+                        id="magnetInput" 
+                        class="input-field" 
+                        placeholder="magnet:?xt=urn:btih:..."
+                    >
+                </div>
+                <button class="btn" onclick="shortenMagnetLink()">Link verkürzen</button>
+                
+                <div id="errorMessage" class="error-message"></div>
+                
+                <div id="resultSection" class="result-section">
+                    <div class="result-title">Ihr verkürzter Link:</div>
+                    <div id="resultLink" class="result-link"></div>
+                    <button class="copy-btn" onclick="copyToClipboard()">Link kopieren</button>
+                </div>
+            </div>
+
+            <div id="redirectSection" class="redirect-section" style="display: none;">
+                <div class="redirect-message">Sie werden weitergeleitet...</div>
+                <div>Falls die Weiterleitung nicht automatisch erfolgt:</div>
+                <a id="manualLink" class="redirect-link" href="#" target="_blank">Hier klicken</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Prüfen ob es sich um einen Redirect handelt
+        function checkForRedirect() {
+            const hash = window.location.hash;
+            if (hash && hash.length > 1) {
+                try {
+                    const encodedMagnet = hash.substring(1);
+                    const magnetLink = atob(encodedMagnet);
+                    
+                    if (magnetLink.startsWith('magnet:')) {
+                        // Zeige Redirect-Sektion
+                        document.getElementById('shortener-section').style.display = 'none';
+                        document.getElementById('redirectSection').style.display = 'block';
+                        document.getElementById('manualLink').href = magnetLink;
+                        
+                        // Automatische Weiterleitung nach 2 Sekunden
+                        setTimeout(() => {
+                            window.location.href = magnetLink;
+                        }, 2000);
+                        
+                        return true;
+                    }
+                } catch (e) {
+                    console.error('Fehler beim Dekodieren des Links:', e);
+                }
+            }
+            return false;
+        }
+
+        // Magnet Link validieren
+        function isValidMagnetLink(link) {
+            return link.trim().toLowerCase().startsWith('magnet:') && 
+                   link.includes('xt=urn:btih:') && 
+                   link.length > 20;
+        }
+
+        // Kurzen Hash generieren
+        function generateShortHash(magnetLink) {
+            let hash = 0;
+            const str = magnetLink + Date.now();
+            
+            for (let i = 0; i < str.length; i++) {
+                const char = str.charCodeAt(i);
+                hash = ((hash << 5) - hash) + char;
+                hash = hash & hash;
+            }
+            
+            return Math.abs(hash).toString(36).substring(0, 6);
+        }
+
+        // Link verkürzen
+        function shortenMagnetLink() {
+            const input = document.getElementById('magnetInput');
+            const magnetLink = input.value.trim();
+            const errorDiv = document.getElementById('errorMessage');
+            const resultDiv = document.getElementById('resultSection');
+            
+            // Fehler zurücksetzen
+            errorDiv.style.display = 'none';
+            resultDiv.classList.remove('show');
+            
+            if (!magnetLink) {
+                showError('Bitte geben Sie einen Magnet-Link ein.');
+                return;
+            }
+            
+            if (!isValidMagnetLink(magnetLink)) {
+                showError('Ungültiger Magnet-Link. Stellen Sie sicher, dass der Link mit "magnet:" beginnt.');
+                return;
+            }
+            
+            try {
+                // Base64 kodierung für den Magnet-Link
+                const encodedMagnet = btoa(magnetLink);
+                const shortUrl = `${window.location.origin}${window.location.pathname}#${encodedMagnet}`;
+                
+                // Ergebnis anzeigen
+                document.getElementById('resultLink').textContent = shortUrl;
+                resultDiv.classList.add('show');
+                
+                // Input leeren
+                input.value = '';
+                
+            } catch (error) {
+                showError('Fehler beim Erstellen des verkürzten Links.');
+                console.error(error);
+            }
+        }
+
+        // Fehler anzeigen
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // In Zwischenablage kopieren
+        async function copyToClipboard() {
+            const linkText = document.getElementById('resultLink').textContent;
+            
+            try {
+                await navigator.clipboard.writeText(linkText);
+                
+                // Feedback geben
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Kopiert!';
+                btn.style.background = 'rgba(76, 175, 80, 0.4)';
+                
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = 'rgba(102, 126, 234, 0.2)';
+                }, 2000);
+                
+            } catch (err) {
+                // Fallback für ältere Browser
+                const textArea = document.createElement('textarea');
+                textArea.value = linkText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                
+                alert('Link wurde kopiert!');
+            }
+        }
+
+        // Enter-Taste im Input-Feld
+        document.getElementById('magnetInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                shortenMagnetLink();
+            }
+        });
+
+        // Beim Laden der Seite prüfen
+        document.addEventListener('DOMContentLoaded', function() {
+            checkForRedirect();
+        });
+
+        // Hash-Änderungen überwachen
+        window.addEventListener('hashchange', function() {
+            if (!checkForRedirect()) {
+                // Zurück zur Hauptansicht wenn kein gültiger Hash
+                document.getElementById('shortener-section').style.display = 'block';
+                document.getElementById('redirectSection').style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
