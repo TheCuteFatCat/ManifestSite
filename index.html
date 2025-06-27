@@ -274,75 +274,43 @@
         // Load history on page load
         loadHistory();
         
+                // In index.html - Form Submit Handler anpassen
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
             
             const magnetLink = document.getElementById('magnetLink').value.trim();
             const customName = document.getElementById('customName').value.trim();
             
-            // Clear previous errors
-            document.getElementById('magnetError').textContent = '';
-            document.getElementById('nameError').textContent = '';
-            document.getElementById('copySuccess').textContent = '';
-            
-            // Validate inputs
-            if (!validateMagnetLink(magnetLink)) {
-                document.getElementById('magnetError').textContent = 'Bitte geben Sie einen gültigen Magnet Link ein.';
-                return;
-            }
-            
-            if (!validateCustomName(customName)) {
-                document.getElementById('nameError').textContent = 'Name darf nur Buchstaben, Zahlen, Bindestriche und Unterstriche enthalten.';
-                return;
-            }
-            
-            // Check if name already exists
-            const existingLinks = JSON.parse(localStorage.getItem('magnetLinks') || '{}');
-            const shortCode = customName.toLowerCase().replace(/[^a-z0-9_-]/g, '');
-            
-            if (existingLinks[shortCode]) {
-                document.getElementById('nameError').textContent = 'Dieser Name wird bereits verwendet. Bitte wählen Sie einen anderen.';
-                return;
-            }
-            
-            // Show loading state
             submitBtn.innerHTML = '<span class="loading"></span>Wird erstellt...';
             submitBtn.disabled = true;
             
             try {
-                // Store in localStorage for persistence across devices/networks
-                const linkData = {
-                    magnetLink: magnetLink,
-                    customName: customName,
-                    shortCode: shortCode,
-                    createdAt: new Date().toISOString(),
-                    clicks: 0
-                };
+                const response = await fetch('/api/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ magnetLink, customName })
+                });
                 
-                // Store individual link
-                localStorage.setItem('magnet_' + shortCode, magnetLink);
+                const data = await response.json();
                 
-                // Store in links collection
-                existingLinks[shortCode] = linkData;
-                localStorage.setItem('magnetLinks', JSON.stringify(existingLinks));
-                
-                // Create the shortened URL
-                const fullUrl = `${window.location.origin}/${shortCode}`;
-                shortenedLink.textContent = fullUrl;
-                result.classList.add('show');
-                
-                // Update history
-                loadHistory();
-                
-                // Clear form
-                document.getElementById('magnetLink').value = '';
-                document.getElementById('customName').value = '';
+                if (data.success) {
+                    const fullUrl = `${window.location.origin}/${data.shortCode}`;
+                    shortenedLink.textContent = fullUrl;
+                    result.classList.add('show');
+                    
+                    // Form zurücksetzen
+                    document.getElementById('magnetLink').value = '';
+                    document.getElementById('customName').value = '';
+                } else {
+                    throw new Error(data.error);
+                }
                 
             } catch (error) {
-                document.getElementById('nameError').textContent = 'Ein Fehler ist aufgetreten. Bitte versuchen Sie es erneut.';
+                document.getElementById('nameError').textContent = error.message;
             }
             
-            // Reset button
             submitBtn.innerHTML = 'Link verkürzen';
             submitBtn.disabled = false;
         });
