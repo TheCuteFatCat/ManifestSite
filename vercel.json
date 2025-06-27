@@ -1,0 +1,19 @@
+
+// vercel.json - Vercel Konfiguration
+{
+  "functions": {
+    "api/shorten.js": {
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    },
+    {
+      "source": "/([^/]+)",
+      "destination": "/redirect.html?code=$1"
+    }
+  ]
+}
