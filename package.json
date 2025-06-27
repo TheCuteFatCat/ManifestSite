@@ -1,9 +1,0 @@
-{
-  "name": "magnet-link-shortener",
-  "version": "1.0.0",
-  "description": "Ein Magnet Link Shortener für Vercel",
-  "main": "index.html",
-  "engines": {
-    "node": ">=14.x"
-  }
-}
