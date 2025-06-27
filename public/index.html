@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Magnet‑Link Shortener</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 4em auto; }
+    input, button { padding: .5em; margin: .5em 0; width: 100%; }
+    #result { word-break: break-all; margin-top: 1em; }
+  </style>
+</head>
+<body>
+  <h1>Magnet‑Link Shortener</h1>
+  <label for="magnet">Magnet‑Link:</label>
+  <input id="magnet" placeholder="z.B. magnet:?xt=urn:btih:..." />
+
+  <label for="slug">Gewünschte Kurz‑URL (z.B. abc123):</label>
+  <input id="slug" placeholder="Dein Kürzel" />
+
+  <button id="btn">Kürzen</button>
+
+  <div id="result"></div>
+
+  <script>
+    document.getElementById('btn').onclick = async () => {
+      const magnet = document.getElementById('magnet').value.trim();
+      const slug   = document.getElementById('slug').value.trim();
+      if (!magnet || !slug) {
+        alert('Beide Felder ausfüllen!');
+        return;
+      }
+      const res = await fetch('/api/shorten', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ magnet, slug })
+      });
+      const j = await res.json();
+      if (j.error) {
+        document.getElementById('result').textContent = 'Fehler: ' + j.error;
+      } else {
+        const url = `${location.origin}/${slug}`;
+        document.getElementById('result').innerHTML =
+          `Kurzlink: <a href="${url}" target="_blank">${url}</a>`;
+      }
+    };
+  </script>
+</body>
+</html>
