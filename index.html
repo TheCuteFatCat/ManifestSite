@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magnet Link Shortener</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #0d1117;
+            color: #e6edf3;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+        }
+
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background-color: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            padding: 2rem;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #58a6ff;
+            font-size: 2rem;
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: #f0f6fc;
+            font-weight: 500;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #e6edf3;
+            font-size: 1rem;
+            transition: border-color 0.2s ease;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 0.75rem;
+            background: linear-gradient(135deg, #238636, #2ea043);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #2ea043, #238636);
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            background: #484f58;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .result.show {
+            display: block;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .shortened-link {
+            background-color: #21262d;
+            padding: 0.75rem;
+            border-radius: 6px;
+            border: 1px solid #30363d;
+            margin: 0.5rem 0;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            color: #58a6ff;
+        }
+
+        .copy-btn {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #e6edf3;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            margin-right: 0.5rem;
+        }
+
+        .copy-btn:hover {
+            background: #30363d;
+        }
+
+        .error {
+            color: #f85149;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .success {
+            color: #3fb950;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #30363d;
+            border-radius: 50%;
+            border-top-color: #58a6ff;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            margin-top: 2rem;
+            text-align: center;
+            color: #7d8590;
+            font-size: 0.875rem;
+        }
+
+        .links-history {
+            margin-top: 2rem;
+            padding: 1rem;
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+        }
+
+        .history-item {
+            padding: 0.75rem;
+            background-color: #21262d;
+            border-radius: 6px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .history-name {
+            font-weight: 500;
+            color: #58a6ff;
+        }
+
+        .history-url {
+            font-size: 0.875rem;
+            color: #7d8590;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧲 Magnet Link Shortener</h1>
+        
+        <form id="shortenForm">
+            <div class="form-group">
+                <label for="magnetLink">Magnet Link:</label>
+                <textarea 
+                    id="magnetLink" 
+                    placeholder="magnet:?xt=urn:btih:..."
+                    required
+                ></textarea>
+                <div id="magnetError" class="error"></div>
+            </div>
+            
+            <div class="form-group">
+                <label for="customName">Name für den Link:</label>
+                <input 
+                    type="text" 
+                    id="customName" 
+                    placeholder="z.B. Cyberpunk2077"
+                    required
+                />
+                <div id="nameError" class="error"></div>
+            </div>
+            
+            <button type="submit" class="btn" id="submitBtn">
+                Link verkürzen
+            </button>
+        </form>
+        
+        <div id="result" class="result">
+            <h3>✅ Link erfolgreich erstellt!</h3>
+            <p>Ihr verkürzter Link:</p>
+            <div class="shortened-link" id="shortenedLink"></div>
+            <button class="copy-btn" onclick="copyToClipboard()">📋 Kopieren</button>
+            <button class="copy-btn" onclick="testLink()">🔗 Testen</button>
+            <div id="copySuccess" class="success"></div>
+        </div>
+
+        <div id="history" class="links-history" style="display: none;">
+            <h3>📋 Ihre Links</h3>
+            <div id="historyList"></div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        <p>Sichere und schnelle Magnet Link Verkürzung</p>
+    </div>
+
+    <script>
+        const form = document.getElementById('shortenForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const result = document.getElementById('result');
+        const shortenedLink = document.getElementById('shortenedLink');
+        const history = document.getElementById('history');
+        const historyList = document.getElementById('historyList');
+        
+        // Load history on page load
+        loadHistory();
+        
+                // In index.html - Form Submit Handler anpassen
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const magnetLink = document.getElementById('magnetLink').value.trim();
+            const customName = document.getElementById('customName').value.trim();
+            
+            submitBtn.innerHTML = '<span class="loading"></span>Wird erstellt...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ magnetLink, customName })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const fullUrl = `${window.location.origin}/${data.shortCode}`;
+                    shortenedLink.textContent = fullUrl;
+                    result.classList.add('show');
+                    
+                    // Form zurücksetzen
+                    document.getElementById('magnetLink').value = '';
+                    document.getElementById('customName').value = '';
+                } else {
+                    throw new Error(data.error);
+                }
+                
+            } catch (error) {
+                document.getElementById('nameError').textContent = error.message;
+            }
+            
+            submitBtn.innerHTML = 'Link verkürzen';
+            submitBtn.disabled = false;
+        });
+        
+        function validateMagnetLink(link) {
+            return link.startsWith('magnet:?') && link.includes('xt=urn:btih:');
+        }
+        
+        function validateCustomName(name) {
+            return /^[a-zA-Z0-9_-]+$/.test(name) && name.length >= 1 && name.length <= 50;
+        }
+        
+        function copyToClipboard() {
+            const linkText = shortenedLink.textContent;
+            navigator.clipboard.writeText(linkText).then(() => {
+                document.getElementById('copySuccess').textContent = '✅ Link kopiert!';
+                setTimeout(() => {
+                    document.getElementById('copySuccess').textContent = '';
+                }, 3000);
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = linkText;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                document.getElementById('copySuccess').textContent = '✅ Link kopiert!';
+                setTimeout(() => {
+                    document.getElementById('copySuccess').textContent = '';
+                }, 3000);
+            });
+        }
+        
+        function testLink() {
+            const linkText = shortenedLink.textContent;
+            window.open(linkText, '_blank');
+        }
+        
+        function loadHistory() {
+            const existingLinks = JSON.parse(localStorage.getItem('magnetLinks') || '{}');
+            const entries = Object.values(existingLinks);
+            
+            if (entries.length === 0) {
+                history.style.display = 'none';
+                return;
+            }
+            
+            // Sort by creation date (newest first)
+            entries.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            
+            historyList.innerHTML = '';
+            entries.forEach(entry => {
+                const item = document.createElement('div');
+                item.className = 'history-item';
+                
+                const info = document.createElement('div');
+                const name = document.createElement('div');
+                name.className = 'history-name';
+                name.textContent = entry.customName;
+                
+                const url = document.createElement('div');
+                url.className = 'history-url';
+                url.textContent = `${window.location.origin}/${entry.shortCode}`;
+                
+                info.appendChild(name);
+                info.appendChild(url);
+                
+                const actions = document.createElement('div');
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-btn';
+                copyBtn.textContent = '📋';
+                copyBtn.onclick = () => copyHistoryLink(entry.shortCode);
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'copy-btn';
+                deleteBtn.textContent = '🗑️';
+                deleteBtn.onclick = () => deleteLink(entry.shortCode);
+                
+                actions.appendChild(copyBtn);
+                actions.appendChild(deleteBtn);
+                
+                item.appendChild(info);
+                item.appendChild(actions);
+                historyList.appendChild(item);
+            });
+            
+            history.style.display = 'block';
+        }
+        
+        function copyHistoryLink(shortCode) {
+            const url = `${window.location.origin}/${shortCode}`;
+            navigator.clipboard.writeText(url).then(() => {
+                // Visual feedback could be added here
+            });
+        }
+        
+        function deleteLink(shortCode) {
+            if (confirm('Möchten Sie diesen Link wirklich löschen?')) {
+                // Remove from localStorage
+                localStorage.removeItem('magnet_' + shortCode);
+                
+                // Remove from links collection
+                const existingLinks = JSON.parse(localStorage.getItem('magnetLinks') || '{}');
+                delete existingLinks[shortCode];
+                localStorage.setItem('magnetLinks', JSON.stringify(existingLinks));
+                
+                // Reload history
+                loadHistory();
+            }
+        }
+    </script>
+</body>
+</html>
