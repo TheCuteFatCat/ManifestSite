@@ -1,0 +1,13 @@
+{
+  "name": "magnet-shortener",
+  "version": "1.0.0",
+  "description": "Magnet Link Shortener",
+  "main": "index.js",
+  "type": "module",
+  "dependencies": {
+    "ioredis": "^5.3.2"
+  },
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
